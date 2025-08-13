@@ -49,6 +49,7 @@ const DatabaseSetupModal: FC<DatabaseSetupModalProps> = ({ open, onClose }) => {
   const [setupResult, setSetupResult] = useState<SetupResult | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const [importError, setImportError] = useState<string | null>(null);
 
   const steps = ['Configuração', 'Validação', 'Setup', 'Finalizado'];
 
@@ -72,7 +73,33 @@ const DatabaseSetupModal: FC<DatabaseSetupModalProps> = ({ open, onClose }) => {
       setSetupProgress(null);
       setSetupResult(null);
       setCurrentStep(0);
+      setImportError(null);
       onClose();
+    }
+  };
+
+  const handleExport = () => {
+    try {
+      AppwriteCredentialsManager.exportToFile();
+    } catch (e) {
+      console.error('Erro ao exportar credenciais:', e);
+    }
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setImportError(null);
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const creds = await AppwriteCredentialsManager.importFromFile(file);
+      setProjectId(creds.projectId);
+      setApiKey(creds.apiKey);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Erro desconhecido ao importar';
+      setImportError(msg);
+    } finally {
+      // permitir re-selecionar o mesmo ficheiro
+      e.target.value = '';
     }
   };
 
@@ -181,6 +208,20 @@ const DatabaseSetupModal: FC<DatabaseSetupModalProps> = ({ open, onClose }) => {
                 {validationResult.message}
               </Alert>
             )}
+
+            {importError && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {importError}
+              </Alert>
+            )}
+
+            <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+              <Button variant="outlined" size="small" onClick={handleExport}>Exportar Credenciais</Button>
+              <Button variant="outlined" size="small" component="label">
+                Importar Credenciais
+                <input type="file" accept="application/json" hidden onChange={handleImport} />
+              </Button>
+            </Box>
           </Box>
         );
 
