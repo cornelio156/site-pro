@@ -63,4 +63,39 @@ export class AppwriteCredentialsManager {
     // Disparar evento customizado para notificar que as credenciais mudaram
     window.dispatchEvent(new CustomEvent('appwriteCredentialsChanged'));
   }
+
+  // Exportar credenciais para ficheiro JSON (download no navegador)
+  static exportToFile(filename = 'appwrite-credentials.json'): void {
+    const data = {
+      projectId: this.getProjectId(),
+      apiKey: this.getApiKey(),
+      exportedAt: new Date().toISOString(),
+      version: 1,
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  // Importar credenciais a partir de ficheiro JSON
+  static async importFromFile(file: File): Promise<{ projectId: string; apiKey: string }>{
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    if (!parsed || typeof parsed !== 'object') {
+      throw new Error('Ficheiro inválido');
+    }
+    const projectId = String(parsed.projectId || '').trim();
+    const apiKey = String(parsed.apiKey || '').trim();
+    if (!projectId || !apiKey) {
+      throw new Error('Ficheiro não contém projectId e apiKey');
+    }
+    this.saveCredentials(projectId, apiKey);
+    return { projectId, apiKey };
+  }
 }
