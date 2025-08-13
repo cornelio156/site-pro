@@ -22,6 +22,7 @@ import { useSiteConfig } from '../context/SiteConfigContext';
 import FeaturedBanner from '../components/FeaturedBanner';
 import DatabaseSetupModal from '../components/DatabaseSetupModal';
 import CredentialsStatus from '../components/CredentialsStatus';
+import { AppwriteCredentialsManager } from '../services/AppwriteCredentialsManager';
 
 // Skeleton card component for loading state
 const VideoCardSkeleton: FC = () => {
@@ -59,6 +60,7 @@ const Home: FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [setupModalOpen, setSetupModalOpen] = useState(false);
+  const [showSetupButton, setShowSetupButton] = useState(false);
   
   const { user } = useAuth();
   const { videoListTitle } = useSiteConfig();
@@ -87,6 +89,14 @@ const Home: FC = () => {
     };
     
     fetchVideos();
+    
+    // Determinar se deve mostrar o botão de configuração
+    try {
+      const projectId = AppwriteCredentialsManager.getProjectId();
+      setShowSetupButton(!projectId);
+    } catch {
+      setShowSetupButton(true);
+    }
   }, [user, page]);
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
@@ -133,23 +143,24 @@ const Home: FC = () => {
             alignItems: 'center',
             alignSelf: { xs: 'flex-start', md: 'center' }
           }}>
-            {/* Botão de setup da database - sempre visível para facilitar configuração inicial */}
-            <Tooltip title="Configurar Base de Dados Appwrite">
-              <Button
-                onClick={() => setSetupModalOpen(true)}
-                variant="outlined"
-                color="secondary"
-                size="small"
-                sx={{ 
-                  minWidth: 'auto', 
-                  px: 1.5,
-                  opacity: 0.7,
-                  '&:hover': { opacity: 1 }
-                }}
-              >
-                <SettingsIcon fontSize="small" />
-              </Button>
-            </Tooltip>
+            {showSetupButton && (
+              <Tooltip title="Configurar Base de Dados Appwrite">
+                <Button
+                  onClick={() => setSetupModalOpen(true)}
+                  variant="outlined"
+                  color="secondary"
+                  size="small"
+                  sx={{ 
+                    minWidth: 'auto', 
+                    px: 1.5,
+                    opacity: 0.7,
+                    '&:hover': { opacity: 1 }
+                  }}
+                >
+                  <SettingsIcon fontSize="small" />
+                </Button>
+              </Tooltip>
+            )}
             
             <Button 
               component={RouterLink}
