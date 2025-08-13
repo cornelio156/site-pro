@@ -222,6 +222,29 @@ function getAttributesForType(type) {
   }
 }
 
+function getIndexesForType(type) {
+  switch (type) {
+    case 'video':
+      return [
+        { key: 'title_index', type: 'key', attributes: ['title'] },
+        { key: 'created_at_index', type: 'key', attributes: ['created_at'] },
+        { key: 'is_active_index', type: 'key', attributes: ['is_active'] },
+      ];
+    case 'user':
+      return [
+        { key: 'email_index', type: 'unique', attributes: ['email'] },
+      ];
+    case 'session':
+      return [
+        { key: 'token_index', type: 'unique', attributes: ['token'] },
+        { key: 'user_id_index', type: 'key', attributes: ['user_id'] },
+        { key: 'expires_at_index', type: 'key', attributes: ['expires_at'] },
+      ];
+    default:
+      return [];
+  }
+}
+
 async function createAttribute(databases, databaseId, collectionId, attr) {
   if (attr.type === 'string') {
     return databases.createStringAttribute(databaseId, collectionId, attr.key, attr.size, attr.required, attr.default, !!attr.array);
