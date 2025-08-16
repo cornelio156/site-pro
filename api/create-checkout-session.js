@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     // Use AppWrite Function automatic environment variables
     const client = new Client()
       .setEndpoint('https://fra.cloud.appwrite.io/v1') // Endpoint fixo
-      .setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID)
+      .setProject(process.env.VITE_APPWRITE_PROJECT_ID)
       .setKey(process.env.APPWRITE_FUNCTION_API_KEY || process.env.APPWRITE_API_KEY);
       
     // API key é opcional e será omitida aqui
