@@ -23,8 +23,8 @@ export default async function handler(req, res) {
     try {
       // Get site config from Appwrite
       const response = await databases.listDocuments(
-        '681f88420007454eb3b8', // Database ID fixo
-        '681f8848001f19f3cc63'  // Site Config Collection ID fixo
+        'video_site_db', // Database ID fixo
+        'site_config'  // Site Config Collection ID fixo
       );
       
       if (response.documents.length > 0) {
