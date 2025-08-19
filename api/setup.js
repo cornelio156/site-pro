@@ -19,7 +19,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'Project ID e API Key são obrigatórios' });
     }
 
-    const endpoint = process.env.APPWRITE_ENDPOINT || 'https://fra.cloud.appwrite.io/v1';
+    // Endpoint fixo (não muda)
+    const endpoint = 'https://fra.cloud.appwrite.io/v1';
 
     // Configurar cliente Appwrite (Server SDK)
     const client = new Client()

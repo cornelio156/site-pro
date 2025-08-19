@@ -370,11 +370,11 @@ app.post('/api/create-checkout-session', async (req, res) => {
     // Buscar chave secreta do Stripe no Appwrite
     let stripeSecretKey = '';
     
-    // Inicializar cliente Appwrite com variáveis automáticas
+    // Inicializar cliente Appwrite com variáveis de ambiente
     const client = new Client()
       .setEndpoint('https://fra.cloud.appwrite.io/v1') // Endpoint fixo
-      .setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID)
-      .setKey(process.env.APPWRITE_FUNCTION_API_KEY || process.env.APPWRITE_API_KEY);
+      .setProject(process.env.VITE_APPWRITE_PROJECT_ID)
+      .setKey(process.env.VITE_APPWRITE_API_KEY);
       
     const databases = new Databases(client);
     
@@ -383,8 +383,8 @@ app.post('/api/create-checkout-session', async (req, res) => {
       console.log('Buscando configurações no Appwrite...');
       
       const response = await databases.listDocuments(
-        '681f88420007454eb3b8', // Database ID fixo
-        '681f8848001f19f3cc63'  // Site Config Collection ID fixo
+        'video_site_db', // Database ID consistente
+        'site_config'    // Site Config Collection ID consistente
       );
       
       if (response.documents.length > 0) {

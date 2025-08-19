@@ -127,8 +127,6 @@ export class DatabaseSetupService {
       // Se o setup foi bem-sucedido, salvar as credenciais automaticamente
       if (errors.length === 0) {
         AppwriteCredentialsManager.saveCredentials(this.projectId, this.apiKey);
-        // Exportar automaticamente após salvar
-        try { AppwriteCredentialsManager.exportToFile(); } catch {}
       }
 
       return {

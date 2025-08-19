@@ -1,5 +1,5 @@
 {
-  "projectId": "68825db50023af660aad",
+  "projectId": "${VITE_APPWRITE_PROJECT_ID}",
   "endpoint": "https://fra.cloud.appwrite.io/v1",
   "functions": [
     {

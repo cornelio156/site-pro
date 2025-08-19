@@ -14,9 +14,8 @@ export default async function handler(req, res) {
     // Use AppWrite Function automatic environment variables
     const client = new Client()
       .setEndpoint('https://fra.cloud.appwrite.io/v1') // Endpoint fixo
-      .setProject(process.env.VITE_APPWRITE_PROJECT_ID);
-      
-          // Cliente sem autenticação para acesso público
+      .setProject(process.env.VITE_APPWRITE_PROJECT_ID)
+      .setKey(process.env.VITE_APPWRITE_API_KEY);
       
     const databases = new Databases(client);
     

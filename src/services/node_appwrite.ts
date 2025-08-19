@@ -3,9 +3,6 @@ import { AppwriteCredentialsManager } from './AppwriteCredentialsManager';
 
 // Appwrite configuration
 const endpoint = 'https://fra.cloud.appwrite.io/v1'; // Endpoint fixo
-// Usar o gerenciador de credenciais
-const projectId = AppwriteCredentialsManager.getProjectId();
-const apiKey = AppwriteCredentialsManager.getApiKey();
 
 // Database and collection IDs - IDs simples e consistentes
 export const databaseId = 'video_site_db';
@@ -22,8 +19,16 @@ export const thumbnailsBucketId = 'thumbnails_bucket';
 const client = new Client();
 client.setEndpoint(endpoint);
 
-// Atualizar cliente com credenciais salvas
-AppwriteCredentialsManager.updateClient(client);
+// Função para configurar o cliente com as credenciais atuais
+const configureClient = () => {
+  const projectId = AppwriteCredentialsManager.getProjectId();
+  if (projectId) {
+    client.setProject(projectId);
+  }
+};
+
+// Configurar cliente inicialmente
+configureClient();
 
 // Export Appwrite services
 export const account = new Account(client);
@@ -32,7 +37,7 @@ export const storage = new Storage(client);
 
 // Função para recarregar o cliente quando as credenciais mudarem
 const reloadClient = () => {
-  AppwriteCredentialsManager.updateClient(client);
+  configureClient();
 };
 
 // Escutar mudanças nas credenciais

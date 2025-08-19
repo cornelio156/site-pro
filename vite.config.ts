@@ -13,6 +13,8 @@ export default defineConfig(({ mode }) => {
       // Make env variables available to the client-side code
       'process.env.VITE_STRIPE_PUBLISHABLE_KEY': JSON.stringify(env.VITE_STRIPE_PUBLISHABLE_KEY),
       'process.env.VITE_API_URL': JSON.stringify(env.VITE_API_URL || ''),
+      'process.env.VITE_APPWRITE_PROJECT_ID': JSON.stringify(env.VITE_APPWRITE_PROJECT_ID || ''),
+      'process.env.VITE_APPWRITE_API_KEY': JSON.stringify(env.VITE_APPWRITE_API_KEY || ''),
     },
     server: {
       // Configure a middleware for handling API requests during development

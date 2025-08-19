@@ -37,65 +37,51 @@ export class AppwriteCredentialsManager {
   // Obter Project ID (localStorage primeiro, depois env)
   static getProjectId(): string {
     const saved = localStorage.getItem(this.PROJECT_ID_KEY);
-    return saved || import.meta.env.VITE_APPWRITE_PROJECT_ID || '';
+    const envProjectId = import.meta.env.VITE_APPWRITE_PROJECT_ID;
+    
+    // Se não há project ID salvo, usar o do ambiente
+    if (!saved && envProjectId) {
+      // Salvar automaticamente o project ID do ambiente
+      localStorage.setItem(this.PROJECT_ID_KEY, envProjectId);
+      return envProjectId;
+    }
+    
+    return saved || envProjectId || '';
   }
 
   // Obter API Key (localStorage primeiro, depois env)
   static getApiKey(): string {
     const saved = localStorage.getItem(this.API_KEY_KEY);
-    return saved || import.meta.env.VITE_APPWRITE_API_KEY || '';
-  }
-
-  // Atualizar cliente Appwrite com novas credenciais
-  static updateClient(client: any): void {
-    const projectId = this.getProjectId();
+    const envApiKey = import.meta.env.VITE_APPWRITE_API_KEY;
     
-    if (projectId) {
-      client.setProject(projectId);
+    // Se não há API key salva, usar a do ambiente
+    if (!saved && envApiKey) {
+      // Salvar automaticamente a API key do ambiente
+      localStorage.setItem(this.API_KEY_KEY, envApiKey);
+      return envApiKey;
     }
     
-    // Nota: setKey não está disponível no cliente browser do Appwrite
-    // A API Key é usada apenas para operações administrativas no backend
+    return saved || envApiKey || '';
   }
 
   // Função para recarregar o cliente quando as credenciais mudarem
   static reloadClient(): void {
     // Disparar evento customizado para notificar que as credenciais mudaram
-    window.dispatchEvent(new CustomEvent('appwriteCredentialsChanged'));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('appwriteCredentialsChanged'));
+    }
   }
 
-  // Exportar credenciais para ficheiro JSON (download no navegador)
-  static exportToFile(filename = 'appwrite-credentials.json'): void {
-    const data = {
-      projectId: this.getProjectId(),
-      apiKey: this.getApiKey(),
-      exportedAt: new Date().toISOString(),
-      version: 1,
+  // Verificar se as credenciais do ambiente estão disponíveis
+  static hasEnvironmentCredentials(): boolean {
+    return !!(import.meta.env.VITE_APPWRITE_PROJECT_ID && import.meta.env.VITE_APPWRITE_API_KEY);
+  }
+
+  // Obter credenciais do ambiente
+  static getEnvironmentCredentials(): { projectId: string; apiKey: string } {
+    return {
+      projectId: import.meta.env.VITE_APPWRITE_PROJECT_ID || '',
+      apiKey: import.meta.env.VITE_APPWRITE_API_KEY || ''
     };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }
-
-  // Importar credenciais a partir de ficheiro JSON
-  static async importFromFile(file: File): Promise<{ projectId: string; apiKey: string }>{
-    const text = await file.text();
-    const parsed = JSON.parse(text);
-    if (!parsed || typeof parsed !== 'object') {
-      throw new Error('Ficheiro inválido');
-    }
-    const projectId = String(parsed.projectId || '').trim();
-    const apiKey = String(parsed.apiKey || '').trim();
-    if (!projectId || !apiKey) {
-      throw new Error('Ficheiro não contém projectId e apiKey');
-    }
-    this.saveCredentials(projectId, apiKey);
-    return { projectId, apiKey };
   }
 }
