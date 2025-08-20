@@ -393,56 +393,69 @@ app.post('/api/create-checkout-session', async (req, res) => {
         console.log('Chave secreta do Stripe obtida com sucesso do Appwrite');
       } else {
         console.log('Nenhum documento de configuração encontrado no Appwrite');
-        return res.status(500).json({ error: 'Configurações do Stripe não encontradas no Appwrite' });
       }
     } catch (appwriteError) {
       console.error('Erro ao buscar chave do Stripe no Appwrite:', appwriteError);
-      return res.status(500).json({ 
-        error: 'Erro ao conectar com o Appwrite', 
-        details: appwriteError.message
-      });
     }
     
-    // Verificar se a chave do Stripe foi encontrada
+    // Fallback para variável de ambiente se não encontrar no Appwrite
     if (!stripeSecretKey) {
-      return res.status(500).json({ error: 'Chave secreta do Stripe não encontrada no Appwrite' });
+      stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+      if (stripeSecretKey) {
+        console.log('Usando chave do Stripe da variável de ambiente como fallback');
+      } else {
+        return res.status(500).json({ 
+          error: 'Chave secreta do Stripe não encontrada nem no Appwrite nem nas variáveis de ambiente' 
+        });
+      }
     }
     
     // Inicializar Stripe com a chave obtida do Appwrite
     const stripe = new Stripe(stripeSecretKey);
     
-    const { items, domain, successUrl, cancelUrl } = req.body;
+    const { amount, currency = 'usd', name, success_url, cancel_url } = req.body;
+
+    console.log('Dados recebidos para checkout:', JSON.stringify(req.body, null, 2));
 
     // Validar os dados recebidos
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ error: 'Items são obrigatórios e devem ser um array não vazio' });
+    if (!amount || typeof amount !== 'number' || amount <= 0) {
+      return res.status(400).json({ error: 'Amount é obrigatório e deve ser um número positivo' });
+    }
+    if (!name || typeof name !== 'string') {
+      return res.status(400).json({ error: 'Name é obrigatório e deve ser uma string' });
+    }
+    if (!success_url || typeof success_url !== 'string') {
+      return res.status(400).json({ error: 'success_url é obrigatório e deve ser uma string' });
+    }
+    if (!cancel_url || typeof cancel_url !== 'string') {
+      return res.status(400).json({ error: 'cancel_url é obrigatório e deve ser uma string' });
     }
 
-    // Validar cada item
-    for (const item of items) {
-      if (!item.price_data || !item.price_data.unit_amount || !item.price_data.product_data) {
-        return res.status(400).json({ error: 'Cada item deve ter price_data com unit_amount e product_data' });
-      }
-      if (!item.quantity || item.quantity < 1) {
-        return res.status(400).json({ error: 'Cada item deve ter uma quantidade válida (>= 1)' });
-      }
-    }
+    // Criar line_items baseado nos dados recebidos
+    const lineItems = [{
+      price_data: {
+        currency: 'usd', // Sempre usar USD
+        product_data: {
+          name: name,
+        },
+        unit_amount: Math.round(amount), // Amount já deve vir em centavos
+      },
+      quantity: 1,
+    }];
 
-    // URLs padrão se não fornecidas
-    const baseUrl = domain || `http://localhost:${port}`;
-    const success_url = successUrl || `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`;
-    const cancel_url = cancelUrl || `${baseUrl}/cancel`;
+    console.log('Line items criados:', JSON.stringify(lineItems, null, 2));
 
     // Criar sessão de checkout
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
-      line_items: items,
+      line_items: lineItems,
       mode: 'payment',
-      success_url,
-      cancel_url,
+      success_url: success_url,
+      cancel_url: cancel_url,
+      billing_address_collection: 'auto',
     });
     
-    res.json({ id: session.id, url: session.url });
+    res.json({ sessionId: session.id, url: session.url });
   } catch (error) {
     console.error('Erro ao criar sessão de checkout:', error);
     res.status(500).json({ 
