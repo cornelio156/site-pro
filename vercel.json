@@ -17,9 +17,6 @@
     }
   },
   "env": {
-    "APPWRITE_ENDPOINT": "https://fra.cloud.appwrite.io/v1",
-    "APPWRITE_PROJECT_ID": "686ff4a2001595970536",
-    "APPWRITE_DATABASE_ID": "681f818100229727cfc0",
-    "APPWRITE_SITE_CONFIG_COLLECTION_ID": "681f8ff2002d7e996c1"
+    "APPWRITE_ENDPOINT": "https://fra.cloud.appwrite.io/v1"
   }
 }
