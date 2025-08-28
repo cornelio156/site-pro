@@ -9,6 +9,7 @@ import Stack from '@mui/material/Stack';
 import PaymentIcon from '@mui/icons-material/Payment';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import { VideoService, SortOption, type Video } from '../services/VideoService';
+import type { Theme } from '@mui/material/styles';
 
 type Provider = 'Stripe' | 'PayPal';
 
@@ -55,10 +56,19 @@ function formatCurrency(amount: number): string {
   }
 }
 
-const providerIcon = (provider: Provider) => provider === 'Stripe' ? <CreditCardIcon fontSize="small" /> : <PaymentIcon fontSize="small" />;
+const providerIcon = (provider: Provider): JSX.Element => provider === 'Stripe' ? <CreditCardIcon fontSize="small" /> : <PaymentIcon fontSize="small" />;
 
-const NotificationCard: FC<{ visible: boolean; buyer: string; country: string; countryEmoji: string; provider: Provider; product: string; price: number }>
-  = ({ visible, buyer, country, countryEmoji, provider, product, price }) => {
+interface NotificationCardProps {
+  visible: boolean;
+  buyer: string;
+  country: string;
+  countryEmoji: string;
+  provider: Provider;
+  product: string;
+  price: number;
+}
+
+const NotificationCard: FC<NotificationCardProps> = ({ visible, buyer, country, countryEmoji, provider, product, price }) => {
   return (
     <Fade in={visible} timeout={{ enter: 400, exit: 400 }}>
       <Paper elevation={6} sx={{ p: 1.5, borderRadius: 2, minWidth: 280, maxWidth: 340 }}>
@@ -100,20 +110,19 @@ const PaymentNotifications: FC = () => {
   }, []);
 
   const nextDelayMs = () => {
-    // Show a notification every 12–28 seconds
-    return 12000 + Math.floor(Math.random() * 16000);
+    // Show a notification every 40 seconds after the first
+    return 40000;
   };
 
-  const pickProvider: Provider = useMemo(() => 'Stripe', []); // default memo to satisfy lints
-
   useEffect(() => {
-    function scheduleNext() {
+    function scheduleNext(initial = false) {
+      const delay = initial ? 5000 : nextDelayMs();
       const handle = window.setTimeout(() => {
         if (videos.length === 0) {
-          scheduleNext();
+          scheduleNext(false);
           return;
         }
-        const video = getRandom(videos);
+        const video: Video = getRandom(videos as Video[]);
         const buyer = pickBuyer();
         const provider: Provider = Math.random() < 0.6 ? 'Stripe' : 'PayPal';
         setPayload({
@@ -126,18 +135,18 @@ const PaymentNotifications: FC = () => {
         });
         setVisible(true);
         window.setTimeout(() => setVisible(false), 4200);
-        scheduleNext();
-      }, nextDelayMs());
+        scheduleNext(false);
+      }, delay);
       timerRef.current = handle;
     }
-    scheduleNext();
+    scheduleNext(true);
     return () => { if (timerRef.current) window.clearTimeout(timerRef.current); };
   }, [videos]);
 
   if (!payload) return null;
 
   return (
-    <Box sx={{ position: 'fixed', left: 16, bottom: 16, zIndex: (theme) => theme.zIndex.snackbar }}>
+    <Box sx={{ position: 'fixed', left: 16, top: 16, zIndex: (theme: Theme) => theme.zIndex.snackbar }}>
       <NotificationCard
         visible={visible}
         buyer={payload.buyer}
