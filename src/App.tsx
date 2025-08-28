@@ -17,6 +17,7 @@ import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import { useEffect, useState } from 'react';
 import SplashAnimation from './components/SplashAnimation';
+import PaymentNotifications from './components/PaymentNotifications';
 
 // Componente AppContent para usar hooks que dependem do Router
 const AppContent: FC = () => {
@@ -77,6 +78,7 @@ const AppContent: FC = () => {
       minHeight: '100vh',
     }}>
       {showSplash && <SplashAnimation onAnimationComplete={handleAnimationComplete} />}
+      <PaymentNotifications />
       <Header />
       <Box component="main" sx={{ flexGrow: 1 }}>
         <Routes>
